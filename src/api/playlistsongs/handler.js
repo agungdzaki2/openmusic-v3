@@ -2,10 +2,13 @@
 const ClientError = require('../../exceptions/ClientError');
 
 class PlaylistSongsHandler {
-  constructor({ playlistSongsService, songsService, playlistsService }, validator) {
+  constructor({
+    playlistSongsService, songsService, playlistsService, playlistActivitiesService,
+  }, validator) {
     this._service = playlistSongsService;
-    this._playlistsService = songsService;
-    this._songsService = playlistsService;
+    this._playlistsService = playlistsService;
+    this._songsService = songsService;
+    this._playlistActivitiesService = playlistActivitiesService;
     this._validator = validator;
 
     this.postPlaylistSongHandler = this.postPlaylistSongHandler.bind(this);
@@ -22,6 +25,7 @@ class PlaylistSongsHandler {
       await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
       await this._songsService.getSongById(songId);
       const SongId = await this._service.addSongsToPlaylist(playlistId, songId);
+      await this._playlistActivitiesService.addActivities(playlistId, songId, credentialId, 'add');
       const response = h.response({
         status: 'success',
         message: 'Lagu Playlist berhasil ditambahkan',
@@ -54,7 +58,7 @@ class PlaylistSongsHandler {
     try {
       const { id: credentialId } = request.auth.credentials;
       const { id: playlistId } = request.params;
-      await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
+      await this._playlistsService.verifyPlaylistAccess(credentialId, playlistId);
       const playlist = await this._playlistsService.getPlaylistsById(playlistId);
       const songs = await this._songsService.getSongPlaylistsById(playlistId);
       playlist.songs = songs;
@@ -91,7 +95,7 @@ class PlaylistSongsHandler {
       const { id: credentialId } = request.auth.credentials;
       await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
       await this._service.deleteSongsFromPlaylist(playlistId, songId);
-
+      await this._playlistActivitiesService.addActivities(playlistId, songId, credentialId, 'delete');
       return {
         status: 'success',
         message: 'Playlist song berhasil dihapus',
