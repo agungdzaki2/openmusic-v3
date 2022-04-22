@@ -65,11 +65,10 @@ class PlaylistsService {
   }
 
   async verifyPlaylistOwner(id, owner) {
-    const query = {
+    const result = await this._pool.query({
       text: 'SELECT * FROM playlists WHERE id = $1',
       values: [id],
-    };
-    const result = await this._pool.query(query);
+    });
     if (!result.rows.length) {
       throw new NotFoundError('Playlist tidak ditemukan');
     }
@@ -84,11 +83,6 @@ class PlaylistsService {
       await this.verifyPlaylistOwner(playlistId, userId);
     } catch (error) {
       if (error instanceof NotFoundError) {
-        throw error;
-      }
-      try {
-        await this._collaborationsService.verifyCollaborator(playlistId, userId);
-      } catch {
         throw error;
       }
     }

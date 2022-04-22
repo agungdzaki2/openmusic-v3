@@ -2,8 +2,9 @@
 const ClientError = require('../../exceptions/ClientError');
 
 class CollaborationsHandler {
-  constructor(collaborationsService, playlistsService, usersService, validator) {
-    this._collaborationsService = collaborationsService;
+  constructor(service, validator) {
+    const { collaborationsService, playlistsService, usersService } = service;
+    this._service = collaborationsService;
     this._playlistsService = playlistsService;
     this._usersService = usersService;
     this._validator = validator;
@@ -20,10 +21,9 @@ class CollaborationsHandler {
 
       await this._playlistsService.getPlaylistsById(playlistId);
       await this._usersService.getUserById(userId);
-      await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
-      const collaborationId = await this._collaborationsService
-        .addCollaboration(playlistId, userId);
 
+      await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
+      const collaborationId = await this._service.addCollaboration(playlistId, userId);
       const response = h.response({
         status: 'success',
         message: 'Kolaborasi berhasil ditambahkan',
@@ -49,7 +49,7 @@ class CollaborationsHandler {
         message: 'Maaf, terjadi kegagalan pada server kami.',
       });
       response.code(500);
-      console.error(error);
+      console.log(error);
       return response;
     }
   }
@@ -59,10 +59,8 @@ class CollaborationsHandler {
       this._validator.validateCollaborationPayload(request.payload);
       const { id: credentialId } = request.auth.credentials;
       const { playlistId, userId } = request.payload;
-
       await this._playlistsService.verifyPlaylistOwner(playlistId, credentialId);
-      await this._collaborationsService.deleteCollaboration(playlistId, userId);
-
+      await this._service.deleteCollaboration(playlistId, userId);
       return {
         status: 'success',
         message: 'Kolaborasi berhasil dihapus',
@@ -83,7 +81,7 @@ class CollaborationsHandler {
         message: 'Maaf, terjadi kegagalan pada server kami.',
       });
       response.code(500);
-      console.error(error);
+      console.log(error);
       return response;
     }
   }

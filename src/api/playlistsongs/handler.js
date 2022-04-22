@@ -2,10 +2,10 @@
 const ClientError = require('../../exceptions/ClientError');
 
 class PlaylistSongsHandler {
-  constructor(service, playlistsService, songsService, validator) {
-    this._service = service;
-    this._playlistsService = playlistsService;
-    this._songsService = songsService;
+  constructor({ playlistSongsService, songsService, playlistsService }, validator) {
+    this._service = playlistSongsService;
+    this._playlistsService = songsService;
+    this._songsService = playlistsService;
     this._validator = validator;
 
     this.postPlaylistSongHandler = this.postPlaylistSongHandler.bind(this);
@@ -15,7 +15,7 @@ class PlaylistSongsHandler {
 
   async postPlaylistSongHandler(request, h) {
     try {
-      this._validator.validatePlaylistSongPayload(request.payload);
+      this._validator.validatePlaylistSongsPayload(request.payload);
       const { songId } = request.payload;
       const { id: credentialId } = request.auth.credential;
       const { id: playlistId } = request.params;
@@ -39,7 +39,7 @@ class PlaylistSongsHandler {
         response.code(error.statusCode);
         return response;
       }
-      //  Server error
+      // Server ERROR!
       const response = h.response({
         status: 'error',
         message: 'Maaf terjadi kegagalan di server kami.',
@@ -50,14 +50,13 @@ class PlaylistSongsHandler {
     }
   }
 
-  //  get songs from playlist based on id
   async getPlaylistSongsHandler(request, h) {
     try {
       const { id: credentialId } = request.auth.credentials;
       const { id: playlistId } = request.params;
       await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
       const playlist = await this._playlistsService.getPlaylistsById(playlistId);
-      const songs = await this._songsService.getSongById(playlistId);
+      const songs = await this._songsService.getSongPlaylistsById(playlistId);
       playlist.songs = songs;
       return {
         status: 'success',
@@ -72,7 +71,8 @@ class PlaylistSongsHandler {
         response.code(error.statusCode);
         return response;
       }
-      //  Server error
+
+      // Server ERROR!
       const response = h.response({
         status: 'error',
         message: 'Maaf terjadi kegagalan di server kami.',
@@ -83,10 +83,9 @@ class PlaylistSongsHandler {
     }
   }
 
-  //  delete playlist based on id
   async deletePlaylistSongsHandler(request, h) {
     try {
-      this._validator.validatePlaylistSongPayload(request.payload);
+      this._validator.validatePlaylistSongsPayload(request.payload);
       const { songId } = request.payload;
       const { id: playlistId } = request.params;
       const { id: credentialId } = request.auth.credentials;
@@ -106,7 +105,8 @@ class PlaylistSongsHandler {
         response.code(error.statusCode);
         return response;
       }
-      //  Server error
+
+      // Server ERROR!
       const response = h.response({
         status: 'fail',
         message: 'Maaf terjadi kegagalan di server kami.',
