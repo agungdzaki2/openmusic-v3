@@ -1,17 +1,19 @@
 /* eslint no-underscore-dangle: 0 */
 const { Pool } = require('pg');
 const { nanoid } = require('nanoid');
+// const ClientError = require('../../exceptions/ClientError');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
 
 class PlaylistsService {
-  constructor() {
+  constructor(collaborationsService) {
     this._pool = new Pool();
+    this._collaborationsService = collaborationsService;
   }
 
   async addPlaylists({ name, credentialId: owner }) {
-    const id = `playlist-${nanoid(16)}`;
+    const id = `playlists-${nanoid(16)}`;
 
     const query = {
       text: 'INSERT INTO playlists VALUES ($1, $2, $3) RETURNING id',
@@ -83,6 +85,11 @@ class PlaylistsService {
       await this.verifyPlaylistOwner(playlistId, userId);
     } catch (error) {
       if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._collaborationsService.verifyCollaborator(playlistId, userId);
+      } catch {
         throw error;
       }
     }

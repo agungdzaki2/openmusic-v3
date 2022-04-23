@@ -24,6 +24,11 @@ const AuthenticationsService = require('./services/postgres/AuthenticationsServi
 const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentications');
 
+// collaborations
+const collaborations = require('./api/collaborations');
+const CollaborationsService = require('./services/postgres/CollaborationsService');
+const CollaborationsValidator = require('./validator/collaborations');
+
 // playlists
 const playlists = require('./api/playlists');
 const PlaylistsService = require('./services/postgres/PlaylistsService');
@@ -33,11 +38,6 @@ const PlaylistsValidator = require('./validator/playlists');
 const playlistSongs = require('./api/playlistsongs');
 const PlaylistSongsService = require('./services/postgres/PlaylistSongsService');
 const PlaylistSongsValidator = require('./validator/playlistsongs');
-
-// collaborations
-const collaborations = require('./api/collaborations');
-const CollaborationsService = require('./services/postgres/CollaborationsService');
-const CollaborationsValidator = require('./validator/collaborations');
 
 // playlist-activities
 const playlistActivities = require('./api/playlist-activities');
@@ -119,6 +119,17 @@ const init = async () => {
       },
     },
     {
+      plugin: collaborations,
+      options: {
+        service: {
+          collaborationsService,
+          playlistsService,
+          usersService,
+        },
+        validator: CollaborationsValidator,
+      },
+    },
+    {
       plugin: playlists,
       options: {
         service: playlistsService,
@@ -132,19 +143,9 @@ const init = async () => {
           playlistSongsService,
           songsService,
           playlistsService,
+          playlistActivitiesService,
         },
         validator: PlaylistSongsValidator,
-      },
-    },
-    {
-      plugin: collaborations,
-      options: {
-        service: {
-          collaborationsService,
-          playlistsService,
-          usersService,
-        },
-        validator: CollaborationsValidator,
       },
     },
     {

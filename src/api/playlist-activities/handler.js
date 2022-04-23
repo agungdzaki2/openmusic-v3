@@ -12,15 +12,17 @@ class PlaylistActivitiesHandler {
 
   async getPlaylistActivitiesByIdHandler(request, h) {
     try {
+      const { id } = request.params;
       const { id: credentialId } = request.auth.credentials;
-      const { id: playlistId } = request.params;
-      await this._playlistsService.verifyPlaylistAccess(credentialId, playlistId);
+
+      await this._playlistsService.verifyPlaylistAccess(id, credentialId);
       let activities = null;
-      activities = await this._service.getPlaylistActivitiesById(playlistId, credentialId);
+      activities = await this._service.getPlaylistActivitiesById(id, credentialId);
+
       return {
         status: 'success',
         data: {
-          playlistId,
+          playlistId: id,
           activities,
         },
       };
@@ -33,11 +35,13 @@ class PlaylistActivitiesHandler {
         response.code(error.statusCode);
         return response;
       }
+
       // Server ERROR!
       const response = h.response({
         status: 'error',
-        message: 'Maaf, terjadi kegagaln pada server kami.',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
       });
+
       response.code(500);
       console.log(error);
       return response;

@@ -13,7 +13,7 @@ class SongsService {
   async addSong({
     title, year, genre, performer, duration, albumId,
   }) {
-    const id = nanoid(16);
+    const id = `songs-${nanoid(16)}`;
 
     const query = {
       text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
@@ -50,7 +50,7 @@ class SongsService {
     return result.rows.map(mapDBToModelSongs)[0];
   }
 
-  async getSongPlaylistsById(playlistId) {
+  async getSongsByPlaylistId(playlistId) {
     const result = await this._pool.query({
       text: `SELECT songs.id, songs.title, songs.performer FROM songs 
                 LEFT JOIN playlistsongs ON playlistsongs.song_id = songs.id 
