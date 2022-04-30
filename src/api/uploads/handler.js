@@ -21,7 +21,7 @@ class UploadsHandler {
       const filename = await this._service.writeFile(cover, cover.hapi);
       const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`;
 
-      await this._albumsService.addCoverAlbumById({ id, cover: coverUrl });
+      await this._albumsService.addCoverAlbumById(id, coverUrl);
       const response = h.response({
         status: 'success',
         message: 'Sampul berhasil diunggah',

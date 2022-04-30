@@ -10,6 +10,8 @@ class AlbumsHandler {
     this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
     this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
+    this.postAlbumLikeHandler = this.postAlbumLikeHandler.bind(this);
+    this.getAlbumLikesHandler = this.getAlbumLikesHandler.bind(this);
   }
 
   async postAlbumHandler(request, h) {
@@ -117,6 +119,74 @@ class AlbumsHandler {
         status: 'success',
         message: 'Album berhasil dihapus',
       };
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      const response = h.response({
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
+      });
+      response.code(500);
+      console.error(error);
+      return response;
+    }
+  }
+
+  async postAlbumLikeHandler(request, h) {
+    try {
+      const { id: albumId } = request.params;
+      const { id: userId } = request.auth.credentials;
+
+      await this._service.getAlbumById(albumId);
+
+      await this._service.addAlbumLike(albumId, userId);
+      const response = h.response({
+        status: 'success',
+        message: 'Berhasil menyukai atau tidak menyukai album',
+      });
+      response.code(201);
+      return response;
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      const response = h.response({
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
+      });
+      response.code(500);
+      console.error(error);
+      return response;
+    }
+  }
+
+  async getAlbumLikesHandler(request, h) {
+    try {
+      const { id } = request.params;
+      const { likes, isCache } = await this._service.getAlbumLikes(id);
+      const response = h.response({
+        status: 'success',
+        data: {
+          likes: likes.length,
+        },
+      });
+      response.code(200);
+
+      if (isCache) response.header('X-Data-Source', 'cache');
+      return response;
     } catch (error) {
       if (error instanceof ClientError) {
         const response = h.response({
