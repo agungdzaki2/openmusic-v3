@@ -14,11 +14,10 @@ class UploadsHandler {
     try {
       const { cover } = request.payload;
 
-      const { id } = request.params;
-
       this._validator.validateImageHeaders(cover.hapi.headers);
 
       const filename = await this._service.writeFile(cover, cover.hapi);
+      const { id } = request.params;
       const coverUrl = `http://${process.env.HOST}:${process.env.PORT}/upload/images/${filename}`;
 
       await this._albumsService.addCoverAlbumById(id, coverUrl);
